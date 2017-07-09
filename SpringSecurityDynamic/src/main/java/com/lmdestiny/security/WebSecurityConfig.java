@@ -7,6 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
 
 
@@ -20,10 +21,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	    UserDetailsService customUserService(){ //注册UserDetailsService 的bean
 	        return new CustomUserDetailsService();
 	    }
+	 //通过让passwordencoder为bean自定义密码如何编码,不是必须的
+	 //相对于MD5+salt更加安全,但开销更大,高并发时不建议使用,
+	 //存储时密码长度不能低于64
+	 // 推荐网站 http://cmd5.com/
+	 @Bean
+	 public BCryptPasswordEncoder passwordEncoder() {
+	 	return new BCryptPasswordEncoder(5);
+	 }
 	@Override
 	    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
-	       auth.userDetailsService(customUserService()); //user Details Service验证
-
+	       auth.userDetailsService(customUserService())//user Details Service验证
+	       	.passwordEncoder(passwordEncoder()); 
 	    }
 
 	    @Override
