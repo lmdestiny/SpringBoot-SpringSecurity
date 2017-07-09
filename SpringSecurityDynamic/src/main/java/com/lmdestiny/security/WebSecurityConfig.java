@@ -2,6 +2,7 @@ package com.lmdestiny.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,8 +10,8 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
-import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 
 @EnableWebSecurity
@@ -19,8 +20,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	
 	 @Autowired
 	 private MyFilterSecurityInterceptor myFilterSecurityInterceptor;
-	 @Autowired
-	 private PersistentTokenRepository tokenRepository;
 	 
 	 @Bean
 	    UserDetailsService customUserService(){ //注册UserDetailsService 的bean
@@ -33,6 +32,16 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	 @Bean
 	 public BCryptPasswordEncoder passwordEncoder() {
 	 	return new BCryptPasswordEncoder(5);
+	 }
+	 //remember-me相关
+	 @Autowired
+	 private JdbcTemplate jdbcTemplate;
+	 @Bean
+	 JdbcTokenRepositoryImpl jdbcTokenRepositoryImpl() {
+		 JdbcTokenRepositoryImpl jdbcTokenRepositoryImpl = new JdbcTokenRepositoryImpl();
+		 jdbcTokenRepositoryImpl.setJdbcTemplate(jdbcTemplate);
+		 jdbcTokenRepositoryImpl.setCreateTableOnStartup(true);
+		 return jdbcTokenRepositoryImpl;
 	 }
 	@Override
 	    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -64,6 +73,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 				.and()
 					.rememberMe()//登录后记住用户，下次自动登录,数据库中必须存在名为persistent_logins的表 
 					////默认为TokenBasedRememberMeServices,即返回一个token字符串,下次登录时对比
+					.key("lmdestiny")
+					.rememberMeServices(new PersistentTokenBasedRememberMeServices("lmdestiny",customUserService(),jdbcTokenRepositoryImpl()))
 					.tokenValiditySeconds(60*60*24*14); //默认是14天
 	    }
 }
