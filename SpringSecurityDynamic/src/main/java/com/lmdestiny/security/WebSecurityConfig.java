@@ -9,14 +9,19 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.access.intercept.FilterSecurityInterceptor;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenBasedRememberMeServices;
+import org.springframework.security.web.authentication.rememberme.PersistentTokenRepository;
 
 
 @EnableWebSecurity
+//@Order(1)  配置多HttpSecurity时指定优先级,不指定放到最后
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 	
 	 @Autowired
 	 private MyFilterSecurityInterceptor myFilterSecurityInterceptor;
-
+	 @Autowired
+	 private PersistentTokenRepository tokenRepository;
+	 
 	 @Bean
 	    UserDetailsService customUserService(){ //注册UserDetailsService 的bean
 	        return new CustomUserDetailsService();
@@ -58,6 +63,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter{
 					.invalidateHttpSession(true)//在正确的位置添加我们自定义的过滤器
 				.and()
 					.rememberMe()//登录后记住用户，下次自动登录,数据库中必须存在名为persistent_logins的表 
+					////默认为TokenBasedRememberMeServices,即返回一个token字符串,下次登录时对比
 					.tokenValiditySeconds(60*60*24*14); //默认是14天
 	    }
 }

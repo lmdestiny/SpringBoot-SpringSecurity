@@ -8,6 +8,8 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 
+import org.hibernate.annotations.UpdateTimestamp;
+
 @Entity
 @Table(name="persistent_logins")
 public class RememberMeTable{
@@ -21,6 +23,7 @@ public class RememberMeTable{
 	@NotNull
 	private String token;
 	@NotNull
+	@UpdateTimestamp
 	private Timestamp last_used;
 	public String getUsername(){
 		return username;
